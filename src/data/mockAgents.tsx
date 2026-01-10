@@ -1,6 +1,5 @@
 import { Box, Newline, Text } from "ink";
 import type { Agent } from "../types.js";
-import SyntaxHighlight from "ink-syntax-highlight";
 
 // Helper components for output styling
 function Tool({ name, args }: { name: string; args: string }) {
@@ -28,9 +27,9 @@ function Success({ children }: { children: string }) {
 function Prompt({ children }: { children: string }) {
   return (
     <Text>
-      <Newline />
       <Text color="blue">{"⏺ "}</Text>
       <Text color="blue">{children}</Text>
+      <Newline />
     </Text>
   );
 }
@@ -38,9 +37,9 @@ function Prompt({ children }: { children: string }) {
 function Response({ children }: { children: string }) {
   return (
     <Text>
-      <Newline />
       <Text color="orange">{"⏺ "}</Text>
       <Text color="orange">{children}</Text>
+      <Newline />
     </Text>
   );
 }
@@ -56,7 +55,7 @@ function Option({ selected, recommended, children }: { selected?: boolean; recom
 }
 
 function Code({ children }: { children: string }) {
-  return <SyntaxHighlight code={children} />;
+  return <Text>{children}</Text>;
 }
 
 function Comment({ children }: { children: string }) {
