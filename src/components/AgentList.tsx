@@ -10,7 +10,7 @@ interface AgentListProps {
 
 export function AgentList({ agents, selectedIndex }: AgentListProps) {
   return (
-    <Box flexDirection="column" paddingX={1} height="100%">
+    <Box flexDirection="column" paddingX={1}>
       <Box marginTop={-1}>
         <Hotkey word="Agents" hotkey="a" />
       </Box>

@@ -1,64 +1,67 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Box, useApp, useInput } from "ink";
-import type { Pane } from "./types.js";
 import { mockAgents } from "./data/mockAgents.js";
-import { AgentList, TaskQueue, TerminalOutput, TopBar } from "./components/index.js";
+import { AgentOverview, PromptInput, StatusBar, TerminalOutput } from "./components/index.js";
 
 export function App() {
   const { exit } = useApp();
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [focusedPane, setFocusedPane] = useState<Pane>("agents");
+  const [showAgentOverview, setShowAgentOverview] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const isHandlingHotkey = useRef(false);
 
   useInput((input, key) => {
     if (input === "q") {
       exit();
     }
-    if (input === "a") {
-      setFocusedPane("agents");
+
+    // Ctrl + A to toggle agent overview
+    if (key.ctrl && input === "a") {
+      isHandlingHotkey.current = true;
+      setShowAgentOverview((prev) => !prev);
+      setTimeout(() => { isHandlingHotkey.current = false; }, 0);
+      return;
     }
-    if (input === "t") {
-      setFocusedPane("tasks");
+
+    if (key.escape && showAgentOverview) {
+      setShowAgentOverview(false);
     }
-    if (input === "o") {
-      setFocusedPane("output");
-    }
-    if (key.upArrow) {
-      setSelectedIndex((i) => Math.max(0, i - 1));
-    }
-    if (key.downArrow) {
-      setSelectedIndex((i) => Math.min(mockAgents.length - 1, i + 1));
+
+    // Arrow navigation only when agent overview is open
+    if (showAgentOverview) {
+      if (key.upArrow) {
+        setSelectedIndex((i) => Math.max(0, i - 1));
+      }
+      if (key.downArrow) {
+        setSelectedIndex((i) => Math.min(mockAgents.length - 1, i + 1));
+      }
     }
   });
 
+  const handleInputChange = (value: string) => {
+    if (isHandlingHotkey.current) return;
+    setInputValue(value);
+  };
+
+  const handleInputSubmit = (value: string) => {
+    // For now, just clear the input on submit
+    setInputValue("");
+  };
+
   return (
     <Box flexDirection="column" width="100%" height="100%">
-      <TopBar />
-      <Box flexDirection="row" flexGrow={1}>
-        <Box
-          flexDirection="column"
-          borderStyle="single"
-          borderColor={focusedPane === "agents" ? "cyan" : undefined}
-          width="20%"
-        >
-          <AgentList agents={mockAgents} selectedIndex={selectedIndex} />
-        </Box>
-        <Box
-          flexDirection="column"
-          borderStyle="single"
-          borderColor={focusedPane === "tasks" ? "cyan" : undefined}
-          width="30%"
-        >
-          <TaskQueue agent={mockAgents[selectedIndex]} />
-        </Box>
-        <Box
-          flexDirection="column"
-          borderStyle="single"
-          borderColor={focusedPane === "output" ? "cyan" : undefined}
-          flexGrow={1}
-        >
-          <TerminalOutput agent={mockAgents[selectedIndex]} />
-        </Box>
-      </Box>
+      <TerminalOutput agent={mockAgents[selectedIndex]} />
+      {showAgentOverview ? (
+        <AgentOverview agents={mockAgents} selectedIndex={selectedIndex} />
+      ) : (
+        <PromptInput
+          value={inputValue}
+          onChange={handleInputChange}
+          onSubmit={handleInputSubmit}
+          isActive={true}
+        />
+      )}
+      <StatusBar mode={showAgentOverview ? "agents" : "main"} />
     </Box>
   );
 }
