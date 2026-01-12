@@ -1,5 +1,6 @@
 import { Box, Newline, Text } from "ink";
 import type { Agent } from "../types.js";
+import { Code } from "../components/index.js";
 
 // Helper components for output styling
 function Tool({ name, args }: { name: string; args: string }) {
@@ -54,9 +55,6 @@ function Option({ selected, recommended, children }: { selected?: boolean; recom
   );
 }
 
-function Code({ children }: { children: string }) {
-  return <Text>{children}</Text>;
-}
 
 function Comment({ children }: { children: string }) {
   return <Text dimColor>{children}</Text>;
@@ -103,32 +101,32 @@ The app still works the same way. Each component is now self-contained with its 
         <Tool name="Update" args="src/components/AgentList.tsx" />
         <Text>{"  ⎿  Added 4 lines, removed 2 lines"}</Text>
         <Code>{`
-8  export function AgentList({ agents, selectedIndex }: AgentListProps) {
-9    return (
-10 -    <Box flexDirection="column" padding={1}>
-11 -      <Hotkey word="Agents" hotkey="a" />
-12      </Box>
-13 +    <Box flexDirection="column" paddingX={1}>
-14 +      <Box marginTop={-1}>
-15 +        <Hotkey word="Agents" hotkey="a" />
-16 +      </Box>
-17        <Box flexDirection="column" marginTop={1}>
-18          {agents.map((agent, index) => (
-19            <Box key={agent.id} gap={1}>
-20              <Text>{index === selectedIndex ? "▶" : "  "}</Text>
-21              <Text inverse={index === selectedIndex}>{agent.name}</Text>
-22              <Spacer />
-23              <AgentStatusIndicator status={agent.status} />
-24            </Box>
-25          ))}
-26        </Box>
-27        <Spacer />
-28        <Box marginBottom={-1}>
-29          <Hotkey word="New Agent" hotkey="n" />
-30        </Box>
-31      </Box>
-32    );
-33  }
+11  export function AgentList({ agents, selectedIndex }: AgentListProps) {
+12    return (
+13 -    <Box flexDirection="column" padding={1}>
+14 -      <Hotkey word="Agents" hotkey="a" />
+15 -    </Box>
+16 +    <Box flexDirection="column" paddingX={1}>
+17 +      <Box marginTop={-1}>
+18 +        <Hotkey word="Agents" hotkey="a" />
+19 +      </Box>
+20        <Box flexDirection="column" marginTop={1}>
+21          {agents.map((agent, index) => (
+22            <Box key={agent.id} gap={1}>
+23              <Text>{index === selectedIndex ? "▶" : "  "}</Text>
+24              <Text inverse={index === selectedIndex}>{agent.name}</Text>
+25              <Spacer />
+26              <AgentStatusIndicator status={agent.status} />
+27            </Box>
+28          ))}
+29        </Box>
+30        <Spacer />
+31        <Box marginBottom={-1}>
+32          <Hotkey word="New Agent" hotkey="n" />
+33        </Box>
+34      </Box>
+35    );
+36  }
 `
         }</Code>
       </Box>
@@ -196,14 +194,26 @@ src/api/client.ts     |   67.8  |    55.0  |   70.0  |
         <Tool name="Update" args="src/components/Navbar.tsx" />
         <Text>{"  ⎿  Added 3 lines, removed 1 line"}</Text>
         <Code>{`
-45   @media (max-width: 640px) {
-46     .nav-menu {
-47 -     display: none;
-48 +     position: fixed;
-49 +     top: 60px;
-50 +     z-index: 50;
-51     }
-52   }
+45   export function AgentOverview({ agents, selectedIndex }: AgentOverviewProps) {
+46     return (
+47       <Box flexDirection="row" flexGrow={1}>
+48          <Box
+49            flexDirection="column"
+50            borderStyle="single"
+51            width="40%"
+52          >
+53            <AgentList agents={agents} selectedIndex={selectedIndex} />
+54          </Box>
+55          <Box
+56            flexDirection="column"
+57            borderStyle="single"
+58            width="60%"
+59          >
+60            <TaskQueue agent={agents[selectedIndex]} />
+61          </Box>
+62      </Box>
+63    );
+64  }
 `}</Code>
         <Tool name="Bash" args="npm run build" />
         <Text>{`  ⎿  Command completed
