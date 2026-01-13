@@ -37,6 +37,8 @@ src/
 ├── types.ts               # Type definitions
 ├── data/
 │   └── mockAgents.tsx     # Mock agent data with JSX output
+├── hooks/
+│   └── useMouseScroll.ts  # Mouse scroll handling for terminal output
 └── components/
     ├── index.ts           # Barrel export
     ├── Code.tsx           # Syntax highlighting for code blocks
@@ -104,3 +106,26 @@ The `Code` component uses regex-based tokenization for syntax highlighting with 
 | typeName | yellow | `AgentListProps`, `ReactNode` |
 | param | cyan | `agents`, `selectedIndex` |
 | comment | dim | `// comment` |
+
+## Mouse Scroll
+
+The `useMouseScroll` hook enables mouse wheel scrolling for terminal output:
+
+**How it works:**
+1. Enables SGR extended mouse mode via escape sequences (`\x1b[?1000h`, `\x1b[?1006h`)
+2. Listens to stdin for mouse events (button 64 = scroll up, button 65 = scroll down)
+3. Updates `scrollOffset` state which shifts content via `marginTop={-scrollOffset}`
+4. Mouse escape sequences are filtered from TextInput to prevent pollution
+
+**Usage:**
+```typescript
+const { scrollOffset, resetScroll } = useMouseScroll();
+
+// Reset scroll when changing agents
+useEffect(() => {
+  resetScroll();
+}, [selectedIndex]);
+```
+
+**Constants:**
+- `SCROLL_STEP = 2` - Lines scrolled per wheel event
