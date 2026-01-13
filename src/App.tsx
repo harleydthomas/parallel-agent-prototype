@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Box, useApp, useInput } from "ink";
 import { mockAgents } from "./data/mockAgents.js";
 import { AgentOverview, PromptInput, StatusBar, TerminalOutput } from "./components/index.js";
+import { useMouseScroll } from "./hooks/useMouseScroll.js";
 
 export function App() {
   const { exit } = useApp();
@@ -9,6 +10,12 @@ export function App() {
   const [showAgentOverview, setShowAgentOverview] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const isHandlingHotkey = useRef(false);
+  const { scrollOffset, resetScroll } = useMouseScroll();
+
+  // Reset scroll when agent changes
+  useEffect(() => {
+    resetScroll();
+  }, [selectedIndex, resetScroll]);
 
   useInput((input, key) => {
     if (input === "q") {
@@ -40,7 +47,10 @@ export function App() {
 
   const handleInputChange = (value: string) => {
     if (isHandlingHotkey.current) return;
-    setInputValue(value);
+    // Filter out mouse escape sequences (SGR format)
+    // Matches both with ESC prefix (\x1b) and without (when ESC is handled separately)
+    const filtered = value.replace(/(\x1b)?\[<\d+;\d+;\d+[Mm]/g, "");
+    setInputValue(filtered);
   };
 
   const handleInputSubmit = (value: string) => {
@@ -50,7 +60,7 @@ export function App() {
 
   return (
     <Box flexDirection="column" width="100%" height="100%">
-      <TerminalOutput agent={mockAgents[selectedIndex]} />
+      <TerminalOutput agent={mockAgents[selectedIndex]} scrollOffset={scrollOffset} />
       <Box flexDirection="column">
         { showAgentOverview ? (
           <AgentOverview agents={mockAgents} selectedIndex={selectedIndex} />
