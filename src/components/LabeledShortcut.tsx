@@ -10,7 +10,7 @@ export function LabeledShortcut({ children, hotkey }: LabeledShortcutProps) {
   return (
     <Text>
         {children}
-        <Text dimColor> ({hotkey})</Text>
+        <Text dimColor> {hotkey}</Text>
     </Text>
   );
 }

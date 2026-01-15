@@ -17,16 +17,22 @@ bun run src/index.tsx # Run the application
 
 ### Main View
 - **↑/↓** - Scroll terminal output
+- **/** - Open command menu
 - **Option+A** - Toggle AgentOverview panel
 - **Ctrl+U** - Clear input
 - **q** - Quit
 - **Enter** - Submit prompt
 
+### Command Menu
+- **↑/↓** - Navigate commands
+- **Enter** - Execute selected command
+- **Escape** - Close menu
+- Continue typing to filter commands
+
 ### AgentOverview
 - **Option+A** - Close AgentOverview
 - **Escape** - Close AgentOverview
-- **Tab** - Select next agent
-- **Shift+Tab** - Select previous agent
+- **Option+↑/↓** - Select previous/next agent
 - **Option+1-9** - Quick select agent by index
 - **q** - Quit
 
@@ -46,6 +52,7 @@ src/
 └── components/
     ├── index.ts           # Barrel export
     ├── Code.tsx           # Syntax highlighting for code blocks
+    ├── CommandMenu.tsx    # Slash command menu overlay
     ├── Hotkey.tsx         # Hotkey label with highlighted key
     ├── LabeledShortcut.tsx # Content with dimmed shortcut suffix
     ├── StatusIndicator.tsx # Agent, Task & AgentStatusCount indicators
@@ -78,6 +85,12 @@ interface Agent {
   status: AgentStatus;
   tasks: Task[];
   outputLines: ReactNode[];  // Array of lines for virtual scrolling
+}
+
+interface Command {
+  name: string;
+  description: string;
+  shortcut?: string;
 }
 ```
 
@@ -128,13 +141,31 @@ The `useMouseScroll` hook enables scrolling for terminal output using a virtual 
 
 **Usage:**
 ```typescript
-const { scrollOffset, scrollUp, scrollDown, setContentLength } = useMouseScroll();
-
-// Update content length and scroll to bottom when agent changes
-useEffect(() => {
-  setContentLength(agent.outputLines.length, viewportHeight, true);
-}, [agent.id, viewportHeight, setContentLength]);
+// Hook accepts content info and computes scroll position synchronously
+// This avoids flicker when switching agents (no useEffect delay)
+const { scrollOffset, scrollUp, scrollDown } = useMouseScroll({
+  contentLength: agent.outputLines.length,
+  viewportHeight,
+  agentId: agent.id,  // Resets to bottom when agent changes
+});
 ```
 
 **Constants:**
-- `SCROLL_STEP = 3` - Lines scrolled per input event
+- `SCROLL_STEP = 2` - Lines scrolled per input event
+
+## Slash Command Menu
+
+The `CommandMenu` component appears when the user types "/" in the prompt, replacing the StatusBar.
+
+**Features:**
+- Shows max 6 filtered commands
+- Selected command highlighted in magenta
+- Fixed-width command name column for aligned descriptions
+- Optional shortcut displayed dimmed after command name
+
+**Filtering:**
+Commands are filtered by matching input text against command names. E.g., "/cl" shows "clear" and "compact".
+
+**Execution:**
+- Selecting "agents" command opens AgentOverview
+- Other commands clear input (placeholder behavior)

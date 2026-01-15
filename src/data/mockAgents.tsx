@@ -15,9 +15,8 @@ function Tool({ name, args }: { name: string; args: string }) {
 
 function Prompt({ children }: { children: string }) {
   return (
-    <Box>
-      <Text color="blue">{"⏺ "}</Text>
-      <Text color="blue">{children}</Text>
+    <Box backgroundColor={"#303030"}>
+      <Text color="blue">{"❯ "}{children}</Text>
     </Box>
   );
 }

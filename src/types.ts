@@ -16,3 +16,9 @@ export interface Agent {
   tasks: Task[];
   outputLines: ReactNode[];  // Array of lines for virtual scrolling
 }
+
+export interface Command {
+  name: string;
+  description: string;
+  shortcut?: string;
+}

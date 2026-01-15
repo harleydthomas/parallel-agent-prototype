@@ -1,38 +1,48 @@
 import { useStdin, useStdout } from "ink";
 import { useEffect, useState, useCallback, useRef } from "react";
 
+interface UseMouseScrollOptions {
+  contentLength: number;
+  viewportHeight: number;
+  agentId: string;
+}
+
 interface UseMouseScrollResult {
   scrollOffset: number;
   scrollUp: () => void;
   scrollDown: () => void;
-  setContentLength: (length: number, viewportHeight: number, scrollToBottom?: boolean) => void;
 }
 
-const SCROLL_STEP = 3;
+const SCROLL_STEP = 2;
 
-export function useMouseScroll(): UseMouseScrollResult {
+export function useMouseScroll({ contentLength, viewportHeight, agentId }: UseMouseScrollOptions): UseMouseScrollResult {
   const { stdin } = useStdin();
   const { stdout } = useStdout();
-  const [scrollOffset, setScrollOffset] = useState(0);
-  const maxScrollRef = useRef(0);
 
-  const setContentLength = useCallback((length: number, viewportHeight: number, scrollToBottom = false) => {
-    const newMax = Math.max(0, length - viewportHeight);
-    maxScrollRef.current = newMax;
-    if (scrollToBottom) {
-      setScrollOffset(newMax);
-    } else {
-      // Clamp current scroll to new max
-      setScrollOffset(prev => Math.min(prev, newMax));
-    }
-  }, []);
+  // Track scroll position from bottom (0 = at bottom, positive = scrolled up)
+  const [scrollFromBottom, setScrollFromBottom] = useState(0);
+  const prevAgentIdRef = useRef(agentId);
+
+  // Reset to bottom when agent changes
+  if (prevAgentIdRef.current !== agentId) {
+    prevAgentIdRef.current = agentId;
+    setScrollFromBottom(0);
+  }
+
+  // Compute maxScroll and scrollOffset synchronously
+  const maxScroll = Math.max(0, contentLength - viewportHeight);
+  const clampedScrollFromBottom = Math.min(scrollFromBottom, maxScroll);
+  const scrollOffset = maxScroll - clampedScrollFromBottom;
 
   const scrollUp = useCallback(() => {
-    setScrollOffset(prev => Math.max(0, prev - SCROLL_STEP));
-  }, []);
+    setScrollFromBottom(prev => {
+      const max = Math.max(0, contentLength - viewportHeight);
+      return Math.min(max, prev + SCROLL_STEP);
+    });
+  }, [contentLength, viewportHeight]);
 
   const scrollDown = useCallback(() => {
-    setScrollOffset(prev => Math.min(maxScrollRef.current, prev + SCROLL_STEP));
+    setScrollFromBottom(prev => Math.max(0, prev - SCROLL_STEP));
   }, []);
 
   useEffect(() => {
@@ -65,5 +75,5 @@ export function useMouseScroll(): UseMouseScrollResult {
     };
   }, [stdin, stdout, scrollUp, scrollDown]);
 
-  return { scrollOffset, scrollUp, scrollDown, setContentLength };
+  return { scrollOffset, scrollUp, scrollDown };
 }

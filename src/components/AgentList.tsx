@@ -18,10 +18,10 @@ interface AgentRowProps {
 export function AgentRow({ agent, index, selectedIndex }: AgentRowProps) {
   return <Box key={agent.id} gap={1}>
     <Text>{index === selectedIndex ? "▶" : "  "}</Text>
-    <Text dimColor>{agent.id}</Text>
     <Text inverse={index === selectedIndex}>{agent.name}</Text>
     <Spacer />
     <AgentStatusIndicator status={agent.status} />
+    <Text dimColor>⌥{agent.id}</Text>
   </Box>
 }
 
@@ -39,11 +39,9 @@ export function AgentList({ agents, selectedIndex }: AgentListProps) {
       <Spacer />
       <Box flexDirection="row" marginBottom={-1}>
         <Text> </Text>
-        <Hotkey word="New agent" hotkey="n" />
+        <LabeledShortcut hotkey="⌥N"><Text>New Agent</Text></LabeledShortcut>
         <Text> | </Text>
-        <Text dimColor>(tab to cycle)</Text>
-        <Text> | </Text>
-        <Text dimColor>(number to select)</Text>
+        <Text dimColor>⌥+↑↓ to navigate</Text>
         <Text> </Text>
       </Box>
     </Box>

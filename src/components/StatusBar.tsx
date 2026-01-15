@@ -11,7 +11,7 @@ function AgentStatusSummary({ agents }: { agents: Agent[] }) {
   const doneCount = agents.filter(a => a.status === "done").length;
 
   return (
-    <Box gap={4}>
+    <Box gap={3}>
       <AgentStatusCount status="needs_input" count={waitingCount} />
       <AgentStatusCount status="working" count={workingCount} />
       <AgentStatusCount status="done" count={doneCount} />
@@ -28,11 +28,11 @@ export function StatusBar({ agents = [] }: StatusBarProps) {
     <Box paddingX={2}>
       <Text><Text color="magentaBright">⏵⏵ accept edits on</Text> (shift+tab to cycle)</Text>
       <Spacer />
-      <AgentStatusSummary agents={agents} />
-      <Box width={4} />
-      <LabeledShortcut hotkey="^A">
+      <LabeledShortcut hotkey="⌥A">
         <Text color="blue">🤖 Refactor auth</Text>
       </LabeledShortcut>
+      <Box width={3} />
+      <AgentStatusSummary agents={agents} />
     </Box>
   );
 }
