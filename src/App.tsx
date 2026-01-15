@@ -10,21 +10,17 @@ export function App() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showAgentOverview, setShowAgentOverview] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const { scrollOffset, scrollUp, scrollDown, setContentLength, resetScroll } = useMouseScroll();
+  const { scrollOffset, scrollUp, scrollDown, setContentLength } = useMouseScroll();
   const selectedAgent = mockAgents[selectedIndex];
 
   // Calculate viewport height (terminal rows minus prompt and status bar)
-  const viewportHeight = (stdout.rows || 40) - 4;
+  // Prompt = 3 lines (borders + content), StatusBar = 1 line, plus 1 for Ink's rendering
+  const viewportHeight = (stdout.rows || 40) - 5;
 
-  // Update content length when agent changes or viewport resizes
+  // Update content length and scroll to bottom when agent changes
   useEffect(() => {
-    setContentLength(selectedAgent.outputLines.length, viewportHeight);
-  }, [selectedAgent.id, selectedAgent.outputLines.length, viewportHeight, setContentLength]);
-
-  // Reset scroll when agent changes
-  useEffect(() => {
-    resetScroll();
-  }, [selectedIndex, resetScroll]);
+    setContentLength(selectedAgent.outputLines.length, viewportHeight, true);
+  }, [selectedAgent.id, viewportHeight, setContentLength]);
 
   useInput((input, key) => {
     if (input === "q") {
@@ -43,8 +39,8 @@ export function App() {
       }
     }
 
-    // Ctrl + A to toggle agent overview
-    if (key.ctrl && input === "a") {
+    // Option + A to toggle agent overview
+    if (key.meta && input === "a") {
       setShowAgentOverview((prev) => !prev);
       return;
     }
@@ -62,7 +58,7 @@ export function App() {
       }
 
       // Number keys to quick select agent
-      if (/^[1-9]$/.test(input)) {
+      if (key.meta && /^[1-9]$/.test(input)) {
         const index = parseInt(input, 10) - 1;
         if (index < mockAgents.length) {
           setSelectedIndex(index);
@@ -71,11 +67,19 @@ export function App() {
     }
   });
 
-  const handleInputChange = (value: string) => {
-    setInputValue(value);
+  const handleInputChar = (char: string) => {
+    setInputValue(prev => prev + char);
   };
 
-  const handleInputSubmit = (value: string) => {
+  const handleDeleteChar = () => {
+    setInputValue(prev => prev.slice(0, -1));
+  };
+
+  const handleClearInput = () => {
+    setInputValue("");
+  };
+
+  const handleInputSubmit = () => {
     setInputValue("");
   };
 
@@ -89,7 +93,9 @@ export function App() {
       <Box flexDirection="column">
         <PromptInput
           value={inputValue}
-          onChange={handleInputChange}
+          onChangeChar={handleInputChar}
+          onDeleteChar={handleDeleteChar}
+          onClear={handleClearInput}
           onSubmit={handleInputSubmit}
           isActive={true}
         />

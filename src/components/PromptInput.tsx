@@ -2,7 +2,9 @@ import { Box, Text, useInput } from "ink";
 
 interface PromptInputProps {
   value: string;
-  onChange: (value: string) => void;
+  onChangeChar: (char: string) => void;
+  onDeleteChar: () => void;
+  onClear: () => void;
   onSubmit: (value: string) => void;
   isActive: boolean;
 }
@@ -28,7 +30,7 @@ function isMouseSequence(input: string): boolean {
   return false;
 }
 
-export function PromptInput({ value, onChange, onSubmit, isActive }: PromptInputProps) {
+export function PromptInput({ value, onChangeChar, onDeleteChar, onClear, onSubmit, isActive }: PromptInputProps) {
   useInput(
     (input, key) => {
       if (!isActive) return;
@@ -40,11 +42,14 @@ export function PromptInput({ value, onChange, onSubmit, isActive }: PromptInput
 
       if (key.return) {
         onSubmit(value);
+      } else if (key.ctrl && input === "u") {
+        // Ctrl+U clears entire input (standard readline shortcut)
+        onClear();
       } else if (key.backspace || key.delete) {
-        onChange(value.slice(0, -1));
+        onDeleteChar();
       } else if (input && !key.ctrl && !key.meta && !key.escape) {
         // Only add printable characters (not control sequences)
-        onChange(value + input);
+        onChangeChar(input);
       }
     },
     { isActive }

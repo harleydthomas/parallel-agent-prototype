@@ -5,8 +5,7 @@ interface UseMouseScrollResult {
   scrollOffset: number;
   scrollUp: () => void;
   scrollDown: () => void;
-  setContentLength: (length: number, viewportHeight: number) => void;
-  resetScroll: () => void;
+  setContentLength: (length: number, viewportHeight: number, scrollToBottom?: boolean) => void;
 }
 
 const SCROLL_STEP = 3;
@@ -17,15 +16,15 @@ export function useMouseScroll(): UseMouseScrollResult {
   const [scrollOffset, setScrollOffset] = useState(0);
   const maxScrollRef = useRef(0);
 
-  const setContentLength = useCallback((length: number, viewportHeight: number) => {
+  const setContentLength = useCallback((length: number, viewportHeight: number, scrollToBottom = false) => {
     const newMax = Math.max(0, length - viewportHeight);
     maxScrollRef.current = newMax;
-    // Clamp current scroll to new max
-    setScrollOffset(prev => Math.min(prev, newMax));
-  }, []);
-
-  const resetScroll = useCallback(() => {
-    setScrollOffset(0);
+    if (scrollToBottom) {
+      setScrollOffset(newMax);
+    } else {
+      // Clamp current scroll to new max
+      setScrollOffset(prev => Math.min(prev, newMax));
+    }
   }, []);
 
   const scrollUp = useCallback(() => {
@@ -66,5 +65,5 @@ export function useMouseScroll(): UseMouseScrollResult {
     };
   }, [stdin, stdout, scrollUp, scrollDown]);
 
-  return { scrollOffset, scrollUp, scrollDown, setContentLength, resetScroll };
+  return { scrollOffset, scrollUp, scrollDown, setContentLength };
 }

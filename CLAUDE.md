@@ -17,21 +17,22 @@ bun run src/index.tsx # Run the application
 
 ### Main View
 - **↑/↓** - Scroll terminal output
-- **Ctrl+A** - Toggle AgentOverview panel
+- **Option+A** - Toggle AgentOverview panel
+- **Ctrl+U** - Clear input
 - **q** - Quit
 - **Enter** - Submit prompt
 
 ### AgentOverview
-- **Ctrl+A** - Close AgentOverview
+- **Option+A** - Close AgentOverview
 - **Escape** - Close AgentOverview
 - **Tab** - Select next agent
 - **Shift+Tab** - Select previous agent
-- **1-9** - Quick select agent by index
+- **Option+1-9** - Quick select agent by index
 - **q** - Quit
 
 ## Architecture
 
-Terminal UI built with Ink (React for CLIs). Main view shows terminal output with prompt input; Ctrl+A toggles the AgentOverview panel.
+Terminal UI built with Ink (React for CLIs). Main view shows terminal output with prompt input; Option+A toggles the AgentOverview panel.
 
 ```
 src/
@@ -127,17 +128,12 @@ The `useMouseScroll` hook enables scrolling for terminal output using a virtual 
 
 **Usage:**
 ```typescript
-const { scrollOffset, scrollUp, scrollDown, setContentLength, resetScroll } = useMouseScroll();
+const { scrollOffset, scrollUp, scrollDown, setContentLength } = useMouseScroll();
 
-// Update content bounds when agent changes
+// Update content length and scroll to bottom when agent changes
 useEffect(() => {
-  setContentLength(agent.outputLines.length, viewportHeight);
-}, [agent.id]);
-
-// Reset scroll position when switching agents
-useEffect(() => {
-  resetScroll();
-}, [selectedIndex]);
+  setContentLength(agent.outputLines.length, viewportHeight, true);
+}, [agent.id, viewportHeight, setContentLength]);
 ```
 
 **Constants:**
