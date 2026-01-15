@@ -8,40 +8,26 @@ function Tool({ name, args }: { name: string; args: string }) {
     <Text>
       <Text color="green">{"⏺ "}</Text>
       <Text bold>{name}</Text>
-      <Text >({args})</Text>
+      <Text>({args})</Text>
     </Text>
   );
-}
-
-function Diff({ type, children }: { type: "add" | "remove"; children: string }) {
-  return (
-    <Text color={type === "add" ? "green" : "red"}>
-      {type === "add" ? "+" : "-"} {children}
-    </Text>
-  );
-}
-
-function Success({ children }: { children: string }) {
-  return <Text color="green">✓ {children}</Text>;
 }
 
 function Prompt({ children }: { children: string }) {
   return (
-    <Text>
+    <Box>
       <Text color="blue">{"⏺ "}</Text>
       <Text color="blue">{children}</Text>
-      <Newline />
-    </Text>
+    </Box>
   );
 }
 
 function Response({ children }: { children: string }) {
   return (
-    <Text>
-      <Text color="orange">{"⏺ "}</Text>
-      <Text color="orange">{children}</Text>
-      <Newline />
-    </Text>
+    <Box>
+      <Text color="yellow">{"⏺ "}</Text>
+      <Text>{children}</Text>
+    </Box>
   );
 }
 
@@ -55,10 +41,397 @@ function Option({ selected, recommended, children }: { selected?: boolean; recom
   );
 }
 
+// Agent 1: Refactor auth - outputLines as array
+const agent1OutputLines = [
+  <Prompt key="p1">Refactor the auth module to use a centralized AuthService class</Prompt>,
+  <Text key="s1"> </Text>,
+  <Response key="r1">I'll analyze the existing auth implementation and create a unified service.</Response>,
+  <Text key="s2"> </Text>,
+  <Tool key="t1" name="Glob" args="src/auth/**/*.ts" />,
+  <Text key="o1">{`  ⎿  Found 4 files`}</Text>,
+  <Text key="o2">{`     src/auth/login.ts`}</Text>,
+  <Text key="o3">{`     src/auth/logout.ts`}</Text>,
+  <Text key="o4">{`     src/auth/token.ts`}</Text>,
+  <Text key="o5">{`     src/auth/refresh.ts`}</Text>,
+  <Text key="s3"> </Text>,
+  <Tool key="t2" name="Read" args="src/auth/token.ts" />,
+  <Text key="o6">{"  ⎿  Read 67 lines"}</Text>,
+  <Text key="s4"> </Text>,
+  <Code key="c1">{` 1  import jwt from 'jsonwebtoken';`}</Code>,
+  <Code key="c2">{` 2  import { config } from '../config';`}</Code>,
+  <Code key="c3">{` 3`}</Code>,
+  <Code key="c4">{` 4  const TOKEN_EXPIRY = '15m';`}</Code>,
+  <Code key="c5">{` 5  const REFRESH_EXPIRY = '7d';`}</Code>,
+  <Code key="c6">{` 6`}</Code>,
+  <Code key="c7">{` 7  export function generateToken(userId: string): string {`}</Code>,
+  <Code key="c8">{` 8    return jwt.sign({ userId }, config.jwtSecret, {`}</Code>,
+  <Code key="c9">{` 9      expiresIn: TOKEN_EXPIRY,`}</Code>,
+  <Code key="c10">{`10    });`}</Code>,
+  <Code key="c11">{`11  }`}</Code>,
+  <Code key="c12">{`12`}</Code>,
+  <Code key="c13">{`13  export function generateRefreshToken(userId: string): string {`}</Code>,
+  <Code key="c14">{`14    return jwt.sign({ userId, type: 'refresh' }, config.jwtSecret, {`}</Code>,
+  <Code key="c15">{`15      expiresIn: REFRESH_EXPIRY,`}</Code>,
+  <Code key="c16">{`16    });`}</Code>,
+  <Code key="c17">{`17  }`}</Code>,
+  <Code key="c18">{`18`}</Code>,
+  <Code key="c19">{`19  export function verifyToken(token: string): { userId: string } | null {`}</Code>,
+  <Code key="c20">{`20    try {`}</Code>,
+  <Code key="c21">{`21      return jwt.verify(token, config.jwtSecret) as { userId: string };`}</Code>,
+  <Code key="c22">{`22    } catch {`}</Code>,
+  <Code key="c23">{`23      return null;`}</Code>,
+  <Code key="c24">{`24    }`}</Code>,
+  <Code key="c25">{`25  }`}</Code>,
+  <Text key="s5"> </Text>,
+  <Tool key="t3" name="Read" args="src/auth/login.ts" />,
+  <Text key="o7">{"  ⎿  Read 45 lines"}</Text>,
+  <Text key="s6"> </Text>,
+  <Text key="o8">{"Found scattered auth logic across 4 files with duplicated token handling. I'll consolidate into a single AuthService."}</Text>,
+  <Text key="s7"> </Text>,
+  <Tool key="t4" name="Write" args="src/auth/AuthService.ts" />,
+  <Text key="o9">{"  ⎿  Wrote 89 lines"}</Text>,
+  <Text key="s8"> </Text>,
+  <Code key="c26">{` 1  import jwt from 'jsonwebtoken';`}</Code>,
+  <Code key="c27">{` 2  import { config } from '../config';`}</Code>,
+  <Code key="c28">{` 3  import { db } from '../db';`}</Code>,
+  <Code key="c29">{` 4`}</Code>,
+  <Code key="c30">{` 5  interface TokenPair {`}</Code>,
+  <Code key="c31">{` 6    accessToken: string;`}</Code>,
+  <Code key="c32">{` 7    refreshToken: string;`}</Code>,
+  <Code key="c33">{` 8  }`}</Code>,
+  <Code key="c34">{` 9`}</Code>,
+  <Code key="c35">{`10  export class AuthService {`}</Code>,
+  <Code key="c36">{`11    private static readonly TOKEN_EXPIRY = '15m';`}</Code>,
+  <Code key="c37">{`12    private static readonly REFRESH_EXPIRY = '7d';`}</Code>,
+  <Code key="c38">{`13`}</Code>,
+  <Code key="c39">{`14    async login(email: string, password: string): Promise<TokenPair> {`}</Code>,
+  <Code key="c40">{`15      const user = await db.users.findByEmail(email);`}</Code>,
+  <Code key="c41">{`16      if (!user || !await this.verifyPassword(password, user.hash)) {`}</Code>,
+  <Code key="c42">{`17        throw new AuthError('Invalid credentials');`}</Code>,
+  <Code key="c43">{`18      }`}</Code>,
+  <Code key="c44">{`19      return this.generateTokenPair(user.id);`}</Code>,
+  <Code key="c45">{`20    }`}</Code>,
+  <Code key="c46">{`21`}</Code>,
+  <Code key="c47">{`22    async refresh(refreshToken: string): Promise<TokenPair> {`}</Code>,
+  <Code key="c48">{`23      const payload = this.verifyToken(refreshToken);`}</Code>,
+  <Code key="c49">{`24      if (!payload || payload.type !== 'refresh') {`}</Code>,
+  <Code key="c50">{`25        throw new AuthError('Invalid refresh token');`}</Code>,
+  <Code key="c51">{`26      }`}</Code>,
+  <Code key="c52">{`27      return this.generateTokenPair(payload.userId);`}</Code>,
+  <Code key="c53">{`28    }`}</Code>,
+  <Code key="c54">{`29`}</Code>,
+  <Code key="c55">{`30    async logout(userId: string): Promise<void> {`}</Code>,
+  <Code key="c56">{`31      await db.sessions.invalidate(userId);`}</Code>,
+  <Code key="c57">{`32    }`}</Code>,
+  <Code key="c58">{`33  }`}</Code>,
+  <Text key="s9"> </Text>,
+  <Prompt key="p2">Is it possible to have the pane labels be positioned inline with the top border of its containing Box element?</Prompt>,
+  <Text key="s10"> </Text>,
+  <Response key="r2">Yes, we can achieve a fieldset-legend style by using negative margin to pull the title up into the border. Let me update the components.</Response>,
+  <Text key="s11"> </Text>,
+  <Tool key="t5" name="Read" args="src/components/AgentList.tsx" />,
+  <Text key="o10">{"  ⎿  Read 28 lines"}</Text>,
+  <Text key="s12"> </Text>,
+  <Tool key="t6" name="Update" args="src/components/AgentList.tsx" />,
+  <Text key="o11">{"  ⎿  Added 4 lines, removed 2 lines"}</Text>,
+  <Text key="s13"> </Text>,
+  <Code key="c59">{`11  export function AgentList({ agents, selectedIndex }: AgentListProps) {`}</Code>,
+  <Code key="c60">{`12    return (`}</Code>,
+  <Code key="c61">{`13 -    <Box flexDirection="column" padding={1}>`}</Code>,
+  <Code key="c62">{`14 -      <Hotkey word="Agents" hotkey="a" />`}</Code>,
+  <Code key="c63">{`15 -    </Box>`}</Code>,
+  <Code key="c64">{`16 +    <Box flexDirection="column" paddingX={1}>`}</Code>,
+  <Code key="c65">{`17 +      <Box marginTop={-1}>`}</Code>,
+  <Code key="c66">{`18 +        <Hotkey word="Agents" hotkey="a" />`}</Code>,
+  <Code key="c67">{`19 +      </Box>`}</Code>,
+  <Code key="c68">{`20        <Box flexDirection="column" marginTop={1}>`}</Code>,
+  <Code key="c69">{`21          {agents.map((agent, index) => (`}</Code>,
+  <Code key="c70">{`22            <Box key={agent.id} gap={1}>`}</Code>,
+  <Code key="c71">{`23              <Text>{index === selectedIndex ? "▶" : "  "}</Text>`}</Code>,
+  <Code key="c72">{`24              <Text inverse={index === selectedIndex}>{agent.name}</Text>`}</Code>,
+  <Code key="c73">{`25              <Spacer />`}</Code>,
+  <Code key="c74">{`26              <AgentStatusIndicator status={agent.status} />`}</Code>,
+  <Code key="c75">{`27            </Box>`}</Code>,
+  <Code key="c76">{`28          ))}`}</Code>,
+  <Code key="c77">{`29        </Box>`}</Code>,
+  <Code key="c78">{`30        <Spacer />`}</Code>,
+  <Code key="c79">{`31        <Box marginBottom={-1}>`}</Code>,
+  <Code key="c80">{`32          <Hotkey word="New Agent" hotkey="n" />`}</Code>,
+  <Code key="c81">{`33        </Box>`}</Code>,
+  <Code key="c82">{`34      </Box>`}</Code>,
+  <Code key="c83">{`35    );`}</Code>,
+  <Code key="c84">{`36  }`}</Code>,
+];
 
-function Comment({ children }: { children: string }) {
-  return <Text dimColor>{children}</Text>;
-}
+// Agent 2: Write tests - outputLines as array
+const agent2OutputLines = [
+  <Prompt key="p1">Help me add tests to my project</Prompt>,
+  <Text key="s1"> </Text>,
+  <Response key="r1">I'll analyze the codebase for test coverage and help you set up testing.</Response>,
+  <Text key="s2"> </Text>,
+  <Tool key="t1" name="Read" args="package.json" />,
+  <Text key="o1">{"  ⎿  Read 42 lines"}</Text>,
+  <Text key="s3"> </Text>,
+  <Code key="c1">{` 1  {`}</Code>,
+  <Code key="c2">{` 2    "name": "my-app",`}</Code>,
+  <Code key="c3">{` 3    "version": "1.0.0",`}</Code>,
+  <Code key="c4">{` 4    "type": "module",`}</Code>,
+  <Code key="c5">{` 5    "scripts": {`}</Code>,
+  <Code key="c6">{` 6      "dev": "vite",`}</Code>,
+  <Code key="c7">{` 7      "build": "vite build",`}</Code>,
+  <Code key="c8">{` 8      "preview": "vite preview"`}</Code>,
+  <Code key="c9">{` 9    },`}</Code>,
+  <Code key="c10">{`10    "dependencies": {`}</Code>,
+  <Code key="c11">{`11      "react": "^18.2.0",`}</Code>,
+  <Code key="c12">{`12      "react-dom": "^18.2.0"`}</Code>,
+  <Code key="c13">{`13    },`}</Code>,
+  <Code key="c14">{`14    "devDependencies": {`}</Code>,
+  <Code key="c15">{`15      "@types/react": "^18.2.0",`}</Code>,
+  <Code key="c16">{`16      "typescript": "^5.0.0",`}</Code>,
+  <Code key="c17">{`17      "vite": "^5.0.0"`}</Code>,
+  <Code key="c18">{`18    }`}</Code>,
+  <Code key="c19">{`19  }`}</Code>,
+  <Text key="s4"> </Text>,
+  <Text key="o2">{"No test framework configured. Let me check what functions need coverage."}</Text>,
+  <Text key="s5"> </Text>,
+  <Tool key="t2" name="Read" args="src/utils/validate.ts" />,
+  <Text key="o3">{"  ⎿  Read 38 lines"}</Text>,
+  <Text key="s6"> </Text>,
+  <Code key="c20">{` 1  export function isValidEmail(email: string): boolean {`}</Code>,
+  <Code key="c21">{` 2    const re = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;`}</Code>,
+  <Code key="c22">{` 3    return re.test(email);`}</Code>,
+  <Code key="c23">{` 4  }`}</Code>,
+  <Code key="c24">{` 5`}</Code>,
+  <Code key="c25">{` 6  export function isValidPassword(password: string): boolean {`}</Code>,
+  <Code key="c26">{` 7    return password.length >= 8 &&`}</Code>,
+  <Code key="c27">{` 8           /[A-Z]/.test(password) &&`}</Code>,
+  <Code key="c28">{` 9           /[a-z]/.test(password) &&`}</Code>,
+  <Code key="c29">{`10           /[0-9]/.test(password);`}</Code>,
+  <Code key="c30">{`11  }`}</Code>,
+  <Code key="c31">{`12`}</Code>,
+  <Code key="c32">{`13  export function isValidUsername(username: string): boolean {`}</Code>,
+  <Code key="c33">{`14    return /^[a-zA-Z0-9_]{3,20}$/.test(username);`}</Code>,
+  <Code key="c34">{`15  }`}</Code>,
+  <Text key="s7"> </Text>,
+  <Tool key="t3" name="Bash" args="npm run coverage" />,
+  <Text key="o4">{`  ⎿  Command completed`}</Text>,
+  <Text key="o5"> </Text>,
+  <Text key="o6">{`----------------------|---------|----------|---------|`}</Text>,
+  <Text key="o7">{`File                  | % Stmts | % Branch | % Funcs |`}</Text>,
+  <Text key="o8">{`----------------------|---------|----------|---------|`}</Text>,
+  <Text key="o9">{`src/utils/format.ts   |   45.2  |    30.0  |   40.0  |`}</Text>,
+  <Text key="o10">{`src/utils/validate.ts |   12.5  |     0.0  |   16.6  |`}</Text>,
+  <Text key="o11">{`src/api/client.ts     |   67.8  |    55.0  |   70.0  |`}</Text>,
+  <Text key="o12">{`----------------------|---------|----------|---------|`}</Text>,
+  <Text key="s8"> </Text>,
+  <Tool key="t4" name="Glob" args="**/*.test.ts" />,
+  <Text key="o13">{"  ⎿  No files found"}</Text>,
+  <Text key="s9"> </Text>,
+  <Text key="o14">{"Found "}<Text bold>12 untested functions</Text>{" across 3 files. No test framework is configured yet."}</Text>,
+  <Text key="s10"> </Text>,
+  <Text key="o15" color="magenta" bold>? Which test framework would you like to use?</Text>,
+  <Text key="s11"> </Text>,
+  <Option key="opt1" selected recommended>Vitest</Option>,
+  <Text key="o16" dimColor>{"    Fast, ESM-native, works with your Vite setup"}</Text>,
+  <Option key="opt2">Jest</Option>,
+  <Text key="o17" dimColor>{"    Popular, large ecosystem"}</Text>,
+  <Option key="opt3">Node.js test runner</Option>,
+  <Text key="o18" dimColor>{"    Built-in, zero config"}</Text>,
+];
+
+// Agent 3: Fix navbar - outputLines as array
+const agent3OutputLines = [
+  <Prompt key="p1">The navbar is broken on mobile, can you fix it?</Prompt>,
+  <Text key="s1"> </Text>,
+  <Response key="r1">I'll investigate the navbar responsive issues and fix them.</Response>,
+  <Text key="s2"> </Text>,
+  <Tool key="t1" name="Grep" args='"navbar" --type tsx' />,
+  <Text key="o1">{`  ⎿  Found 2 files`}</Text>,
+  <Text key="o2">{`     src/components/Navbar.tsx`}</Text>,
+  <Text key="o3">{`     src/components/Layout.tsx`}</Text>,
+  <Text key="s3"> </Text>,
+  <Tool key="t2" name="Read" args="src/components/Navbar.tsx" />,
+  <Text key="o4">{"  ⎿  Read 78 lines"}</Text>,
+  <Text key="s4"> </Text>,
+  <Code key="c1">{`22  const NavbarContainer = styled.nav\``}</Code>,
+  <Code key="c2">{`23    display: flex;`}</Code>,
+  <Code key="c3">{`24    justify-content: space-between;`}</Code>,
+  <Code key="c4">{`25    align-items: center;`}</Code>,
+  <Code key="c5">{`26    padding: 1rem 2rem;`}</Code>,
+  <Code key="c6">{`27    background: white;`}</Code>,
+  <Code key="c7">{`28    box-shadow: 0 2px 4px rgba(0,0,0,0.1);`}</Code>,
+  <Code key="c8">{`29`}</Code>,
+  <Code key="c9">{`30    @media (max-width: 640px) {`}</Code>,
+  <Code key="c10">{`31      padding: 0.5rem 1rem;`}</Code>,
+  <Code key="c11">{`32    }`}</Code>,
+  <Code key="c12">{`33  \`;`}</Code>,
+  <Code key="c13">{`34`}</Code>,
+  <Code key="c14">{`35  const MobileMenu = styled.div\``}</Code>,
+  <Code key="c15">{`36    display: none;`}</Code>,
+  <Code key="c16">{`37    position: absolute;`}</Code>,
+  <Code key="c17">{`38    top: 60px;`}</Code>,
+  <Code key="c18">{`39    left: 0;`}</Code>,
+  <Code key="c19">{`40    right: 0;`}</Code>,
+  <Code key="c20">{`41    background: white;`}</Code>,
+  <Code key="c21">{`42    z-index: 10;`}</Code>,
+  <Code key="c22">{`43`}</Code>,
+  <Code key="c23">{`44    @media (max-width: 640px) {`}</Code>,
+  <Code key="c24">{`45      display: block;`}</Code>,
+  <Code key="c25">{`46    }`}</Code>,
+  <Code key="c26">{`47  \`;`}</Code>,
+  <Code key="c27">{`48`}</Code>,
+  <Code key="c28">{`49  const HamburgerButton = styled.button\``}</Code>,
+  <Code key="c29">{`50    display: none;`}</Code>,
+  <Code key="c30">{`51    background: none;`}</Code>,
+  <Code key="c31">{`52    border: none;`}</Code>,
+  <Code key="c32">{`53    cursor: pointer;`}</Code>,
+  <Code key="c33">{`54  \`;`}</Code>,
+  <Text key="s5"> </Text>,
+  <Text key="o5">{"Found the issue - the hamburger button has display:none but is never shown on mobile. Also the MobileMenu z-index conflicts with the header."}</Text>,
+  <Text key="s6"> </Text>,
+  <Tool key="t3" name="Update" args="src/components/Navbar.tsx" />,
+  <Text key="o6">{"  ⎿  Added 8 lines, removed 4 lines"}</Text>,
+  <Text key="s7"> </Text>,
+  <Code key="c34">{`49 -const HamburgerButton = styled.button\``}</Code>,
+  <Code key="c35">{`50 -  display: none;`}</Code>,
+  <Code key="c36">{`51 -  background: none;`}</Code>,
+  <Code key="c37">{`52 -  border: none;`}</Code>,
+  <Code key="c38">{`53 -  cursor: pointer;`}</Code>,
+  <Code key="c39">{`54 -\`;`}</Code>,
+  <Code key="c40">{`55 +const HamburgerButton = styled.button\``}</Code>,
+  <Code key="c41">{`56 +  display: none;`}</Code>,
+  <Code key="c42">{`57 +  background: none;`}</Code>,
+  <Code key="c43">{`58 +  border: none;`}</Code>,
+  <Code key="c44">{`59 +  cursor: pointer;`}</Code>,
+  <Code key="c45">{`60 +  padding: 0.5rem;`}</Code>,
+  <Code key="c46">{`61 +`}</Code>,
+  <Code key="c47">{`62 +  @media (max-width: 640px) {`}</Code>,
+  <Code key="c48">{`63 +    display: flex;`}</Code>,
+  <Code key="c49">{`64 +    align-items: center;`}</Code>,
+  <Code key="c50">{`65 +  }`}</Code>,
+  <Code key="c51">{`66 +\`;`}</Code>,
+  <Text key="s8"> </Text>,
+  <Tool key="t4" name="Update" args="src/components/Navbar.tsx" />,
+  <Text key="o7">{"  ⎿  Added 1 line, removed 1 line"}</Text>,
+  <Text key="s9"> </Text>,
+  <Code key="c52">{`42 -  z-index: 10;`}</Code>,
+  <Code key="c53">{`43 +  z-index: 100;`}</Code>,
+  <Text key="s10"> </Text>,
+  <Tool key="t5" name="Bash" args="npm run build" />,
+  <Text key="o8">{`  ⎿  Command completed`}</Text>,
+  <Text key="o9"> </Text>,
+  <Text key="o10">{`✓ Build completed successfully`}</Text>,
+  <Text key="s11"> </Text>,
+  <Text key="o11">{"Done. The navbar now displays correctly on mobile devices."}</Text>,
+  <Text key="s12"> </Text>,
+  <Text key="o12" dimColor>{"✻ Cooked for 42s"}</Text>,
+];
+
+// Agent 4: Add migrations - outputLines as array
+const agent4OutputLines = [
+  <Prompt key="p1">Add database migration support with automatic schema versioning</Prompt>,
+  <Text key="s1"> </Text>,
+  <Response key="r1">I'll implement a migration system that tracks schema versions and applies changes incrementally.</Response>,
+  <Text key="s2"> </Text>,
+  <Tool key="t1" name="Glob" args="src/db/**/*.ts" />,
+  <Text key="o1">{`  ⎿  Found 3 files`}</Text>,
+  <Text key="o2">{`     src/db/index.ts`}</Text>,
+  <Text key="o3">{`     src/db/client.ts`}</Text>,
+  <Text key="o4">{`     src/db/schema.ts`}</Text>,
+  <Text key="s3"> </Text>,
+  <Tool key="t2" name="Read" args="src/db/schema.ts" />,
+  <Text key="o5">{"  ⎿  Read 34 lines"}</Text>,
+  <Text key="s4"> </Text>,
+  <Code key="c1">{` 1  import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';`}</Code>,
+  <Code key="c2">{` 2`}</Code>,
+  <Code key="c3">{` 3  export const users = pgTable('users', {`}</Code>,
+  <Code key="c4">{` 4    id: serial('id').primaryKey(),`}</Code>,
+  <Code key="c5">{` 5    email: text('email').notNull().unique(),`}</Code>,
+  <Code key="c6">{` 6    name: text('name').notNull(),`}</Code>,
+  <Code key="c7">{` 7    createdAt: timestamp('created_at').defaultNow(),`}</Code>,
+  <Code key="c8">{` 8  });`}</Code>,
+  <Code key="c9">{` 9`}</Code>,
+  <Code key="c10">{`10  export const posts = pgTable('posts', {`}</Code>,
+  <Code key="c11">{`11    id: serial('id').primaryKey(),`}</Code>,
+  <Code key="c12">{`12    title: text('title').notNull(),`}</Code>,
+  <Code key="c13">{`13    content: text('content'),`}</Code>,
+  <Code key="c14">{`14    authorId: serial('author_id').references(() => users.id),`}</Code>,
+  <Code key="c15">{`15    createdAt: timestamp('created_at').defaultNow(),`}</Code>,
+  <Code key="c16">{`16  });`}</Code>,
+  <Text key="s5"> </Text>,
+  <Text key="o6">{"Using Drizzle ORM. I'll create a migrations directory and version tracking table."}</Text>,
+  <Text key="s6"> </Text>,
+  <Tool key="t3" name="Bash" args="mkdir -p src/db/migrations" />,
+  <Text key="o7">{"  ⎿  Command completed"}</Text>,
+  <Text key="s7"> </Text>,
+  <Tool key="t4" name="Write" args="src/db/migrate.ts" />,
+  <Text key="o8">{"  ⎿  Wrote 67 lines"}</Text>,
+  <Text key="s8"> </Text>,
+  <Code key="c17">{` 1  import { drizzle } from 'drizzle-orm/postgres-js';`}</Code>,
+  <Code key="c18">{` 2  import { migrate } from 'drizzle-orm/postgres-js/migrator';`}</Code>,
+  <Code key="c19">{` 3  import postgres from 'postgres';`}</Code>,
+  <Code key="c20">{` 4  import { config } from '../config';`}</Code>,
+  <Code key="c21">{` 5`}</Code>,
+  <Code key="c22">{` 6  const migrationClient = postgres(config.databaseUrl, { max: 1 });`}</Code>,
+  <Code key="c23">{` 7`}</Code>,
+  <Code key="c24">{` 8  async function runMigrations() {`}</Code>,
+  <Code key="c25">{` 9    const db = drizzle(migrationClient);`}</Code>,
+  <Code key="c26">{`10`}</Code>,
+  <Code key="c27">{`11    console.log('Running migrations...');`}</Code>,
+  <Code key="c28">{`12`}</Code>,
+  <Code key="c29">{`13    await migrate(db, {`}</Code>,
+  <Code key="c30">{`14      migrationsFolder: './src/db/migrations',`}</Code>,
+  <Code key="c31">{`15    });`}</Code>,
+  <Code key="c32">{`16`}</Code>,
+  <Code key="c33">{`17    console.log('Migrations complete!');`}</Code>,
+  <Code key="c34">{`18    await migrationClient.end();`}</Code>,
+  <Code key="c35">{`19  }`}</Code>,
+  <Code key="c36">{`20`}</Code>,
+  <Code key="c37">{`21  runMigrations().catch((err) => {`}</Code>,
+  <Code key="c38">{`22    console.error('Migration failed:', err);`}</Code>,
+  <Code key="c39">{`23    process.exit(1);`}</Code>,
+  <Code key="c40">{`24  });`}</Code>,
+  <Text key="s9"> </Text>,
+  <Tool key="t5" name="Write" args="src/db/migrations/0001_initial.sql" />,
+  <Text key="o9">{"  ⎿  Wrote 24 lines"}</Text>,
+  <Text key="s10"> </Text>,
+  <Code key="c41">{` 1  -- Migration: 0001_initial`}</Code>,
+  <Code key="c42">{` 2  -- Created: 2024-01-15`}</Code>,
+  <Code key="c43">{` 3`}</Code>,
+  <Code key="c44">{` 4  CREATE TABLE IF NOT EXISTS users (`}</Code>,
+  <Code key="c45">{` 5    id SERIAL PRIMARY KEY,`}</Code>,
+  <Code key="c46">{` 6    email TEXT NOT NULL UNIQUE,`}</Code>,
+  <Code key="c47">{` 7    name TEXT NOT NULL,`}</Code>,
+  <Code key="c48">{` 8    created_at TIMESTAMP DEFAULT NOW()`}</Code>,
+  <Code key="c49">{` 9  );`}</Code>,
+  <Code key="c50">{`10`}</Code>,
+  <Code key="c51">{`11  CREATE TABLE IF NOT EXISTS posts (`}</Code>,
+  <Code key="c52">{`12    id SERIAL PRIMARY KEY,`}</Code>,
+  <Code key="c53">{`13    title TEXT NOT NULL,`}</Code>,
+  <Code key="c54">{`14    content TEXT,`}</Code>,
+  <Code key="c55">{`15    author_id INTEGER REFERENCES users(id),`}</Code>,
+  <Code key="c56">{`16    created_at TIMESTAMP DEFAULT NOW()`}</Code>,
+  <Code key="c57">{`17  );`}</Code>,
+  <Code key="c58">{`18`}</Code>,
+  <Code key="c59">{`19  CREATE INDEX idx_posts_author ON posts(author_id);`}</Code>,
+  <Text key="s11"> </Text>,
+  <Tool key="t6" name="Update" args="package.json" />,
+  <Text key="o10">{"  ⎿  Added 2 lines"}</Text>,
+  <Text key="s12"> </Text>,
+  <Code key="c60">{` 8      "build": "vite build",`}</Code>,
+  <Code key="c61">{` 9 +    "db:migrate": "tsx src/db/migrate.ts",`}</Code>,
+  <Code key="c62">{`10 +    "db:generate": "drizzle-kit generate:pg",`}</Code>,
+  <Code key="c63">{`11      "preview": "vite preview"`}</Code>,
+  <Text key="s13"> </Text>,
+  <Tool key="t7" name="Bash" args="npm run db:migrate" />,
+  <Text key="o11">{`  ⎿  Command completed`}</Text>,
+  <Text key="o12"> </Text>,
+  <Text key="o13">{`Running migrations...`}</Text>,
+  <Text key="o14">{`Applied migration: 0001_initial`}</Text>,
+  <Text key="o15">{`Migrations complete!`}</Text>,
+  <Text key="s14"> </Text>,
+  <Text key="o16" dimColor>{"✻ Cooked for 1m 34s"}</Text>,
+];
 
 export const mockAgents: Agent[] = [
   {
@@ -66,209 +439,51 @@ export const mockAgents: Agent[] = [
     name: "Refactor auth",
     status: "working",
     tasks: [
-      { id: "1-1", name: "Read existing auth code", status: "completed" },
-      { id: "1-2", name: "Extract token logic", status: "completed" },
-      { id: "1-3", name: "Create AuthService class", status: "in_progress" },
-      { id: "1-4", name: "Update imports", status: "pending" },
-      { id: "1-5", name: "Run tests", status: "pending" },
+      { id: "1-1", name: "Analyze auth implementation in src/auth/*.ts", status: "completed" },
+      { id: "1-2", name: "Extract JWT token logic into dedicated TokenService", status: "completed" },
+      { id: "1-3", name: "Create AuthService class with unified interface", status: "in_progress" },
+      { id: "1-4", name: "Migrate existing auth calls to new service", status: "pending" },
+      { id: "1-5", name: "Run tests and verify auth flows work", status: "pending" },
     ],
-    output: (
-      <Box flexDirection="column" gap={0}>
-        <Tool name="Bash" args="bun run src/index.tsx 2>&1 | head -20" />
-        <Text>{`
-src/
-├── index.tsx              # Entry point
-├── App.tsx                # Main app component with state & input handling
-├── types.ts               # Type definitions
-├── data/
-│   └── mockAgents.ts      # Mock agent data
-└── components/
-    ├── index.ts           # Barrel export
-    ├── Hotkey.tsx         # Hotkey label component
-    ├── StatusIndicator.tsx # Agent & Task status indicators
-    ├── AgentList.tsx      # Left pane
-    ├── TaskQueue.tsx      # Center pane
-    └── TerminalOutput.tsx # Right pane
-
-The app still works the same way. Each component is now self-contained with its own props interface, making them easier to update independently.
-
-✻ Cooked for 1m 12s`}
-        </Text>
-        <Prompt>Is it possible to have the pane labels be positioned inline with the top border of its containing Box element?</Prompt>
-        <Response>Yes, we can achieve a fieldset-legend style by using negative margin to pull the title up into the border. Let me update the components.</Response>
-        <Tool name="Read" args="src/components/AgentList.tsx" />
-        <Text>{"  ⎿  Read 28 lines"}<Newline /></Text>
-        <Tool name="Update" args="src/components/AgentList.tsx" />
-        <Text>{"  ⎿  Added 4 lines, removed 2 lines"}</Text>
-        <Code>{`
-11  export function AgentList({ agents, selectedIndex }: AgentListProps) {
-12    return (
-13 -    <Box flexDirection="column" padding={1}>
-14 -      <Hotkey word="Agents" hotkey="a" />
-15 -    </Box>
-16 +    <Box flexDirection="column" paddingX={1}>
-17 +      <Box marginTop={-1}>
-18 +        <Hotkey word="Agents" hotkey="a" />
-19 +      </Box>
-20        <Box flexDirection="column" marginTop={1}>
-21          {agents.map((agent, index) => (
-22            <Box key={agent.id} gap={1}>
-23              <Text>{index === selectedIndex ? "▶" : "  "}</Text>
-24              <Text inverse={index === selectedIndex}>{agent.name}</Text>
-25              <Spacer />
-26              <AgentStatusIndicator status={agent.status} />
-27            </Box>
-28          ))}
-29        </Box>
-30        <Spacer />
-31        <Box marginBottom={-1}>
-32          <Hotkey word="New Agent" hotkey="n" />
-33        </Box>
-34      </Box>
-35    );
-36  }
-`
-        }</Code>
-      </Box>
-    ),
+    outputLines: agent1OutputLines,
   },
   {
     id: "2",
     name: "Write tests",
     status: "needs_input",
     tasks: [
-      { id: "2-1", name: "Identify untested functions", status: "completed" },
-      { id: "2-2", name: "Choose test framework", status: "in_progress" },
-      { id: "2-3", name: "Write unit tests", status: "pending" },
+      { id: "2-1", name: "Audit codebase for untested functions", status: "completed" },
+      { id: "2-2", name: "Configure test framework (Vitest/Jest)", status: "in_progress" },
+      { id: "2-3", name: "Write unit tests for utility functions", status: "pending" },
+      { id: "2-4", name: "Add integration tests for API client", status: "pending" },
+      { id: "2-5", name: "Set up coverage thresholds in CI", status: "pending" },
     ],
-    output: (
-      <Box flexDirection="column" gap={0}>
-        <Prompt>Help me add tests to my project</Prompt>
-        <Response>I'll analyze the codebase for test coverage and help you set up testing.</Response>
-        <Tool name="Bash" args="npm run coverage" />
-        <Text>{`  ⎿  Command completed
-
-----------------------|---------|----------|---------|
-File                  | % Stmts | % Branch | % Funcs |
-----------------------|---------|----------|---------|
-src/utils/format.ts   |   45.2  |    30.0  |   40.0  |
-src/utils/validate.ts |   12.5  |     0.0  |   16.6  |
-src/api/client.ts     |   67.8  |    55.0  |   70.0  |
-----------------------|---------|----------|---------|`}
-        </Text>
-        <Tool name="Glob" args="**/*.test.ts" />
-        <Text>{"  ⎿  No files found"}<Newline /></Text>
-        <Text>{"Found "}<Text bold>12 untested functions</Text>{" across 3 files. No test framework is configured yet."}<Newline /></Text>
-        <Text color="magenta" bold>? Which test framework would you like to use?</Text>
-        <Text> </Text>
-        <Option selected recommended>Vitest</Option>
-        <Text dimColor>{"    Fast, ESM-native, works with your Vite setup"}</Text>
-        <Option>Jest</Option>
-        <Text dimColor>{"    Popular, large ecosystem"}</Text>
-        <Option>Node.js test runner</Option>
-        <Text dimColor>{"    Built-in, zero config"}</Text>
-      </Box>
-    ),
+    outputLines: agent2OutputLines,
   },
   {
     id: "3",
     name: "Fix navbar",
     status: "done",
     tasks: [
-      { id: "3-1", name: "Find navbar component", status: "completed" },
-      { id: "3-2", name: "Fix responsive styles", status: "completed" },
-      { id: "3-3", name: "Test on mobile", status: "completed" },
+      { id: "3-1", name: "Identify responsive breakpoint issues in Navbar.tsx", status: "completed" },
+      { id: "3-2", name: "Fix mobile menu z-index conflicts with header", status: "completed" },
+      { id: "3-3", name: "Add hamburger button visibility for viewports < 640px", status: "completed" },
+      { id: "3-4", name: "Test across viewport sizes (320px, 640px, 1024px)", status: "completed" },
+      { id: "3-5", name: "Verify no visual regressions on desktop", status: "completed" },
     ],
-    output: (
-      <Box flexDirection="column" gap={0}>
-        <Prompt>The navbar is broken on mobile, can you fix it?</Prompt>
-        <Response>I'll investigate the navbar responsive issues and fix them.</Response>
-        <Tool name="Grep" args='"navbar" --type tsx' />
-        <Text>{`  ⎿  Found 2 files
-     src/components/Navbar.tsx
-     src/components/Layout.tsx`}<Newline />
-        </Text>
-        <Tool name="Read" args="src/components/Navbar.tsx" />
-        <Text>{"  ⎿  Read 45 lines"}<Newline /></Text>
-        <Text>{"Found the issue - the mobile menu has z-index conflicts and the hamburger button isn't visible below 640px."}<Newline /></Text>
-        <Tool name="Update" args="src/components/Navbar.tsx" />
-        <Text>{"  ⎿  Added 3 lines, removed 1 line"}</Text>
-        <Code>{`
-45   export function AgentOverview({ agents, selectedIndex }: AgentOverviewProps) {
-46     return (
-47       <Box flexDirection="row" flexGrow={1}>
-48          <Box
-49            flexDirection="column"
-50            borderStyle="single"
-51            width="40%"
-52          >
-53            <AgentList agents={agents} selectedIndex={selectedIndex} />
-54          </Box>
-55          <Box
-56            flexDirection="column"
-57            borderStyle="single"
-58            width="60%"
-59          >
-60            <TaskQueue agent={agents[selectedIndex]} />
-61          </Box>
-62      </Box>
-63    );
-64  }
-`}</Code>
-        <Tool name="Bash" args="npm run build" />
-        <Text>{`  ⎿  Command completed
-
-✓ Build completed successfully`}<Newline />
-        </Text>
-        <Text>{"Done. The navbar now displays correctly on mobile devices."}<Newline /></Text>
-        <Text dimColor>{"✻ Cooked for 42s"}</Text>
-      </Box>
-    ),
+    outputLines: agent3OutputLines,
   },
   {
     id: "4",
-    name: "Update docs",
-    status: "working",
+    name: "Add migrations",
+    status: "done",
     tasks: [
-      { id: "4-1", name: "Review README", status: "completed" },
-      { id: "4-2", name: "Update API section", status: "in_progress" },
-      { id: "4-3", name: "Add examples", status: "pending" },
-      { id: "4-4", name: "Check links", status: "pending" },
+      { id: "4-1", name: "Analyze existing Drizzle schema in src/db/schema.ts", status: "completed" },
+      { id: "4-2", name: "Create migrations directory and migrate.ts runner", status: "completed" },
+      { id: "4-3", name: "Generate initial SQL migration from schema", status: "completed" },
+      { id: "4-4", name: "Add db:migrate and db:generate npm scripts", status: "completed" },
+      { id: "4-5", name: "Run migrations and verify tables created", status: "completed" },
     ],
-    output: (
-      <Box flexDirection="column" gap={0}>
-        <Prompt>Please update the README with the current API endpoints</Prompt>
-        <Response>I'll review the current API and update the documentation.</Response>
-        <Tool name="Read" args="README.md" />
-        <Text>{"  ⎿  Read 156 lines"}<Newline /></Text>
-        <Tool name="Read" args="src/api/endpoints.ts" />
-        <Text>{"  ⎿  Read 89 lines"}<Newline /></Text>
-        <Text>{"The README references outdated endpoints. I'll update the API section to match the current implementation."}<Newline /></Text>
-        <Tool name="Update" args="README.md" />
-        <Text>{"  ⎿  Added 18 lines, removed 12 lines"}</Text>
-        <Code>{`
-## API Endpoints
-
-### Authentication
-
-\`\`\`
-POST /api/auth/login
-POST /api/auth/logout
-POST /api/auth/refresh
-\`\`\`
-
-### Users
-
-\`\`\`
-GET    /api/users
-GET    /api/users/:id
-POST   /api/users
-PATCH  /api/users/:id
-DELETE /api/users/:id
-\`\`\`
-`}</Code>
-        <Text dimColor>{"Adding usage examples..."}</Text>
-      </Box>
-    ),
+    outputLines: agent4OutputLines,
   },
 ];

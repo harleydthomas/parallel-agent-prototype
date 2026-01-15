@@ -10,7 +10,7 @@ interface AgentOverviewProps {
 
 export function AgentOverview({ agents, selectedIndex }: AgentOverviewProps) {
   return (
-    <Box flexDirection="row" flexGrow={1} borderStyle="single" borderDimColor borderLeft={false} borderRight={false} borderBottom={false}>
+    <Box flexDirection="row" flexGrow={1}>
       <Box
         flexDirection="column"
         borderStyle="single"

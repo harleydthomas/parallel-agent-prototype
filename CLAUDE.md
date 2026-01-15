@@ -16,6 +16,7 @@ bun run src/index.tsx # Run the application
 ## Keyboard Shortcuts
 
 ### Main View
+- **↑/↓** - Scroll terminal output
 - **Ctrl+A** - Toggle AgentOverview panel
 - **q** - Quit
 - **Enter** - Submit prompt
@@ -75,7 +76,7 @@ interface Agent {
   name: string;
   status: AgentStatus;
   tasks: Task[];
-  output: ReactNode;  // JSX elements for rich terminal output
+  outputLines: ReactNode[];  // Array of lines for virtual scrolling
 }
 ```
 
@@ -111,25 +112,33 @@ The `Code` component uses regex-based tokenization for syntax highlighting with 
 | param | cyan | `agents`, `selectedIndex` |
 | comment | dim | `// comment` |
 
-## Mouse Scroll
+## Virtual List Scrolling
 
-The `useMouseScroll` hook enables mouse wheel scrolling for terminal output:
+The `useMouseScroll` hook enables scrolling for terminal output using a virtual list pattern:
 
 **How it works:**
-1. Enables SGR extended mouse mode via escape sequences (`\x1b[?1000h`, `\x1b[?1006h`)
-2. Listens to stdin for mouse events (button 64 = scroll up, button 65 = scroll down)
-3. Updates `scrollOffset` state which shifts content via `marginTop={-scrollOffset}`
-4. Mouse escape sequences are filtered from TextInput to prevent pollution
+1. Content is stored as `outputLines: ReactNode[]` (array of line elements)
+2. Enables SGR extended mouse mode via escape sequences (`\x1b[?1000h`, `\x1b[?1006h`)
+3. Listens to stdin for mouse events (button 64 = scroll up, button 65 = scroll down)
+4. `TerminalOutput` renders only visible slice: `outputLines.slice(scrollOffset, scrollOffset + viewportHeight)`
+5. Mouse escape sequences are filtered from PromptInput to prevent pollution
+
+**Why virtual list?** Ink doesn't support CSS-like `overflow: hidden` with `marginTop` scrolling. Content must be sliced and re-rendered.
 
 **Usage:**
 ```typescript
-const { scrollOffset, resetScroll } = useMouseScroll();
+const { scrollOffset, scrollUp, scrollDown, setContentLength, resetScroll } = useMouseScroll();
 
-// Reset scroll when changing agents
+// Update content bounds when agent changes
+useEffect(() => {
+  setContentLength(agent.outputLines.length, viewportHeight);
+}, [agent.id]);
+
+// Reset scroll position when switching agents
 useEffect(() => {
   resetScroll();
 }, [selectedIndex]);
 ```
 
 **Constants:**
-- `SCROLL_STEP = 2` - Lines scrolled per wheel event
+- `SCROLL_STEP = 3` - Lines scrolled per input event

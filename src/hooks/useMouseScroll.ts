@@ -3,42 +3,56 @@ import { useEffect, useState, useCallback, useRef } from "react";
 
 interface UseMouseScrollResult {
   scrollOffset: number;
+  scrollUp: () => void;
+  scrollDown: () => void;
+  setContentLength: (length: number, viewportHeight: number) => void;
   resetScroll: () => void;
 }
 
-const SCROLL_STEP = 2;
+const SCROLL_STEP = 3;
 
 export function useMouseScroll(): UseMouseScrollResult {
   const { stdin } = useStdin();
   const { stdout } = useStdout();
   const [scrollOffset, setScrollOffset] = useState(0);
-  const lastScrollTime = useRef(0);
+  const maxScrollRef = useRef(0);
+
+  const setContentLength = useCallback((length: number, viewportHeight: number) => {
+    const newMax = Math.max(0, length - viewportHeight);
+    maxScrollRef.current = newMax;
+    // Clamp current scroll to new max
+    setScrollOffset(prev => Math.min(prev, newMax));
+  }, []);
 
   const resetScroll = useCallback(() => {
     setScrollOffset(0);
   }, []);
 
+  const scrollUp = useCallback(() => {
+    setScrollOffset(prev => Math.max(0, prev - SCROLL_STEP));
+  }, []);
+
+  const scrollDown = useCallback(() => {
+    setScrollOffset(prev => Math.min(maxScrollRef.current, prev + SCROLL_STEP));
+  }, []);
+
   useEffect(() => {
     // Enable mouse tracking (SGR extended mode)
-    stdout.write("\x1b[?1000h"); // Enable mouse click tracking
-    stdout.write("\x1b[?1006h"); // Enable SGR extended mouse mode
+    stdout.write("\x1b[?1000h");
+    stdout.write("\x1b[?1006h");
 
     const handleData = (data: Buffer) => {
-      const now = Date.now();
       const str = data.toString();
+
       // SGR mouse format: \x1b[<Cb;Cx;CyM or \x1b[<Cb;Cx;Cym
       // Button 64 = scroll up, Button 65 = scroll down
       const match = str.match(/\x1b\[<(\d+);(\d+);(\d+)([Mm])/);
       if (match) {
         const button = parseInt(match[1], 10);
         if (button === 64) {
-          // Scroll wheel up - show earlier content
-          lastScrollTime.current = now;
-          setScrollOffset((prev) => prev + SCROLL_STEP);
+          scrollUp();
         } else if (button === 65) {
-          // Scroll wheel down - show later content
-          lastScrollTime.current = now;
-          setScrollOffset((prev) => Math.max(0, prev - SCROLL_STEP));
+          scrollDown();
         }
       }
     };
@@ -46,12 +60,11 @@ export function useMouseScroll(): UseMouseScrollResult {
     stdin.on("data", handleData);
 
     return () => {
-      // Disable mouse tracking on cleanup
-      stdout.write("\x1b[?1006l"); // Disable SGR mode
-      stdout.write("\x1b[?1000l"); // Disable mouse tracking
+      stdout.write("\x1b[?1006l");
+      stdout.write("\x1b[?1000l");
       stdin.off("data", handleData);
     };
-  }, [stdin, stdout]);
+  }, [stdin, stdout, scrollUp, scrollDown]);
 
-  return { scrollOffset, resetScroll };
+  return { scrollOffset, scrollUp, scrollDown, setContentLength, resetScroll };
 }

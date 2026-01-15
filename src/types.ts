@@ -14,5 +14,5 @@ export interface Agent {
   name: string;
   status: AgentStatus;
   tasks: Task[];
-  output: ReactNode;
+  outputLines: ReactNode[];  // Array of lines for virtual scrolling
 }

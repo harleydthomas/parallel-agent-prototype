@@ -1,16 +1,25 @@
-import { useState, useRef, useEffect } from "react";
-import { Box, useApp, useInput } from "ink";
+import { useState, useEffect } from "react";
+import { Box, useApp, useInput, useStdout } from "ink";
 import { mockAgents } from "./data/mockAgents.js";
 import { AgentOverview, PromptInput, StatusBar, TerminalOutput } from "./components/index.js";
 import { useMouseScroll } from "./hooks/useMouseScroll.js";
 
 export function App() {
   const { exit } = useApp();
+  const { stdout } = useStdout();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showAgentOverview, setShowAgentOverview] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const isHandlingHotkey = useRef(false);
-  const { scrollOffset, resetScroll } = useMouseScroll();
+  const { scrollOffset, scrollUp, scrollDown, setContentLength, resetScroll } = useMouseScroll();
+  const selectedAgent = mockAgents[selectedIndex];
+
+  // Calculate viewport height (terminal rows minus prompt and status bar)
+  const viewportHeight = (stdout.rows || 40) - 4;
+
+  // Update content length when agent changes or viewport resizes
+  useEffect(() => {
+    setContentLength(selectedAgent.outputLines.length, viewportHeight);
+  }, [selectedAgent.id, selectedAgent.outputLines.length, viewportHeight, setContentLength]);
 
   // Reset scroll when agent changes
   useEffect(() => {
@@ -22,11 +31,21 @@ export function App() {
       exit();
     }
 
+    // Arrow keys for scrolling (when not in agent overview)
+    if (!showAgentOverview) {
+      if (key.upArrow) {
+        scrollUp();
+        return;
+      }
+      if (key.downArrow) {
+        scrollDown();
+        return;
+      }
+    }
+
     // Ctrl + A to toggle agent overview
     if (key.ctrl && input === "a") {
-      isHandlingHotkey.current = true;
       setShowAgentOverview((prev) => !prev);
-      setTimeout(() => { isHandlingHotkey.current = false; }, 0);
       return;
     }
 
@@ -53,34 +72,31 @@ export function App() {
   });
 
   const handleInputChange = (value: string) => {
-    if (isHandlingHotkey.current) return;
-    // Filter out mouse escape sequences (SGR format)
-    // Matches both with ESC prefix (\x1b) and without (when ESC is handled separately)
-    const filtered = value.replace(/(\x1b)?\[<\d+;\d+;\d+[Mm]/g, "");
-    setInputValue(filtered);
+    setInputValue(value);
   };
 
   const handleInputSubmit = (value: string) => {
-    // For now, just clear the input on submit
     setInputValue("");
   };
 
   return (
     <Box flexDirection="column" width="100%" height="100%">
-      <TerminalOutput agent={mockAgents[selectedIndex]} scrollOffset={scrollOffset} />
+      <TerminalOutput
+        agent={selectedAgent}
+        scrollOffset={scrollOffset}
+        viewportHeight={viewportHeight}
+      />
       <Box flexDirection="column">
-        { showAgentOverview ? (
+        <PromptInput
+          value={inputValue}
+          onChange={handleInputChange}
+          onSubmit={handleInputSubmit}
+          isActive={true}
+        />
+        {showAgentOverview ? (
           <AgentOverview agents={mockAgents} selectedIndex={selectedIndex} />
         ) : (
-          <>
-            <PromptInput
-              value={inputValue}
-              onChange={handleInputChange}
-              onSubmit={handleInputSubmit}
-              isActive={true}
-            />
-            <StatusBar agents={mockAgents} />
-          </>
+          <StatusBar agents={mockAgents} />
         )}
       </Box>
     </Box>
