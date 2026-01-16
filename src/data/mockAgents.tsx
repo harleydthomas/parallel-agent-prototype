@@ -1,4 +1,4 @@
-import { Box, Newline, Text } from "ink";
+import { Box, Text } from "ink";
 import type { Agent } from "../types.js";
 import { Code } from "../components/index.js";
 
@@ -30,7 +30,7 @@ function Response({ children }: { children: string }) {
   );
 }
 
-export function Option({ id, index, selected, recommended, description, children }: { id: string; index: number; selected?: boolean; recommended?: boolean; description?: string; children: string }) {
+export function Option({ id: _id, index, selected, recommended, description, children }: { id: string; index: number; selected?: boolean; recommended?: boolean; description?: string; children: string }) {
   return (
     <Text>
       <Text>{selected ? "❯ " : "  "}</Text>

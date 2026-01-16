@@ -9,8 +9,12 @@ A design prototype exploring multi-agent orchestration UI for Claude Code. The g
 ## Commands
 
 ```bash
-bun install          # Install dependencies
-bun run src/index.tsx # Run the application
+bun install        # Install dependencies
+bun start          # Run the application
+bun run dev        # Run the application (alias)
+bun run lint       # Run ESLint
+bun run lint:fix   # Run ESLint with auto-fix
+bun run typecheck  # Run TypeScript type checking
 ```
 
 ## Keyboard Shortcuts
@@ -192,3 +196,18 @@ The `Option` component (in mockAgents.tsx) renders selectable options for agents
 **Navigation:** When an agent has `optionIds`, arrow keys navigate options instead of scrolling. Selection state is passed via `React.cloneElement` in TerminalOutput.
 
 **Input behavior:** When `selectedAgent.status === "needs_input"`, the PromptInput is hidden to focus user attention on selecting an option.
+
+## Configuration
+
+**TypeScript** (`tsconfig.json`):
+- Strict mode enabled
+- ESNext target with bundler module resolution
+- JSX set to `react-jsx`
+
+**ESLint** (`eslint.config.js`):
+- ESLint 9 flat config format
+- TypeScript and React hooks plugins
+- Custom rules for terminal escape sequences (`no-control-regex: off`)
+- Allows ref access during render for synchronous change detection
+
+**Note:** Scripts use `bun` to run tools directly due to Node.js version requirements for ESLint 9 and TypeScript 5.

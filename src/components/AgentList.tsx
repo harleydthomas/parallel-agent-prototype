@@ -1,7 +1,6 @@
 import { Box, Spacer, Text } from "ink";
 import type { Agent } from "../types.js";
 import { AgentStatusIndicator } from "./StatusIndicator.js";
-import { Hotkey } from "./Hotkey.js";
 import { LabeledShortcut } from "./LabeledShortcut.js";
 
 interface AgentListProps {

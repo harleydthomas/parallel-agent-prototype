@@ -1,6 +1,4 @@
-import { Box, Newline, Spacer, Text } from "ink";
-import { Hotkey } from "./Hotkey.js";
-import { UsageBar } from "./UsageBar.js";
+import { Box, Spacer, Text } from "ink";
 import { AgentStatusCount } from "./StatusIndicator.js";
 import type { Agent } from "../types.js";
 import { LabeledShortcut } from "./index.js";
