@@ -66,7 +66,9 @@ export function App() {
 
   // Calculate viewport height (terminal rows minus prompt and status bar)
   // Prompt = 3 lines (borders + content), StatusBar = 1 line, plus 1 for Ink's rendering
-  const viewportHeight = (stdout.rows || 40) - (selectedAgent.status === "needs_input" ? 2 : 5);
+  // AgentOverview = 5 lines (padding + border + margin) + number of agents
+  const agentOverviewHeight = showAgentOverview ? 5 + mockAgents.length : 0;
+  const viewportHeight = (stdout.rows || 40) - (selectedAgent.status === "needs_input" ? 2 : 5) - agentOverviewHeight;
 
   // Scroll state - computed synchronously to avoid flicker when switching agents
   const { scrollOffset, scrollUp, scrollDown } = useMouseScroll({
@@ -112,31 +114,31 @@ export function App() {
       }
     }
 
-    // Arrow keys for option selection or scrolling (when not in agent overview or command menu)
-    if (!showAgentOverview && !showCommandMenu) {
-      if (hasOptions) {
-        // Navigate options
-        const currentIndex = selectedOptionId ? optionIds.indexOf(selectedOptionId) : 0;
-        if (key.upArrow) {
-          const newIndex = Math.max(0, currentIndex - 1);
-          setSelectedOptionId(optionIds[newIndex]);
-          return;
-        }
-        if (key.downArrow) {
-          const newIndex = Math.min(optionIds.length - 1, currentIndex + 1);
-          setSelectedOptionId(optionIds[newIndex]);
-          return;
-        }
-      } else {
-        // Scroll when no options
-        if (key.upArrow) {
-          scrollUp();
-          return;
-        }
-        if (key.downArrow) {
-          scrollDown();
-          return;
-        }
+    // Arrow keys for option selection (works even with AgentOverview open)
+    // Exclude meta+arrow which is used for agent navigation in AgentOverview
+    if (!showCommandMenu && hasOptions && !key.meta) {
+      const currentIndex = selectedOptionId ? optionIds.indexOf(selectedOptionId) : 0;
+      if (key.upArrow) {
+        const newIndex = Math.max(0, currentIndex - 1);
+        setSelectedOptionId(optionIds[newIndex]);
+        return;
+      }
+      if (key.downArrow) {
+        const newIndex = Math.min(optionIds.length - 1, currentIndex + 1);
+        setSelectedOptionId(optionIds[newIndex]);
+        return;
+      }
+    }
+
+    // Arrow keys for scrolling (when not in agent overview, command menu, and no options)
+    if (!showAgentOverview && !showCommandMenu && !hasOptions) {
+      if (key.upArrow) {
+        scrollUp();
+        return;
+      }
+      if (key.downArrow) {
+        scrollDown();
+        return;
       }
     }
 
@@ -217,16 +219,19 @@ export function App() {
             isActive={true}
           />
         )}
-        {showAgentOverview ? (
-          <AgentOverview agents={mockAgents} selectedIndex={selectedIndex} />
-        ) : showCommandMenu ? (
+        {showCommandMenu ? (
           <CommandMenu
             commands={filteredCommands}
             selectedIndex={commandSelectedIndex}
             filter={commandFilter}
           />
         ) : (
-          <StatusBar agents={mockAgents} selectedAgent={selectedAgent} />
+          <>
+            <StatusBar agents={mockAgents} selectedAgent={selectedAgent} />
+            {showAgentOverview && (
+              <AgentOverview agents={mockAgents} selectedIndex={selectedIndex} />
+            )}
+          </>
         )}
       </Box>
     </Box>
