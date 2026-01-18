@@ -4,7 +4,7 @@ A design prototype exploring multi-agent orchestration UI for Claude Code. This 
 
 Built as a portfolio project demonstrating product design thinking for complex AI tooling interfaces.
 
-![Terminal UI Preview](https://via.placeholder.com/800x400?text=Terminal+UI+Preview)
+![Overview](https://github.com/user-attachments/assets/2b030aab-63ba-484e-a5ff-13475709b154)
 
 ## Features
 
