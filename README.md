@@ -4,7 +4,7 @@ A design prototype exploring multi-agent orchestration UI for Claude Code. This 
 
 Built as a portfolio project demonstrating product design thinking for complex AI tooling interfaces.
 
-![Overview]([agent-overview.webm](https://github.com/user-attachments/assets/e91dc636-736c-4eca-a498-5ae7a169c0d3))
+https://github.com/user-attachments/assets/1c6b8d62-4a62-447c-a321-de4062fc62ce
 
 ## Features
 
