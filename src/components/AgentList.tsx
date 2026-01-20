@@ -20,7 +20,7 @@ export function AgentRow({ agent, index, selectedIndex }: AgentRowProps) {
     <Text inverse={index === selectedIndex}>{agent.name}</Text>
     <Spacer />
     <AgentStatusIndicator status={agent.status} />
-    <Text dimColor>⌥{index}</Text>
+    <Text dimColor>⌥{index + 1}</Text>
   </Box>
 }
 
@@ -41,6 +41,8 @@ export function AgentList({ agents, selectedIndex }: AgentListProps) {
         <LabeledShortcut hotkey="⌥N"><Text>New Agent</Text></LabeledShortcut>
         <Text> | </Text>
         <Text dimColor>⌥+↑↓ to navigate</Text>
+        <Text> | </Text>
+        <LabeledShortcut hotkey="⌥+delete"><Text>Delete</Text></LabeledShortcut>
         <Text> </Text>
       </Box>
     </Box>

@@ -222,12 +222,21 @@ export function App() {
         const newAgent: Agent = {
           id: newId,
           name: "New agent",
-          status: "needs_input",
+          status: "done",
           tasks: [],
           outputLines: [],
         };
         setAgents(prev => [...prev, newAgent]);
         setSelectedIndex(agents.length);
+        return;
+      }
+
+      // Option + R to remove selected agent
+      if (key.meta && key.delete) {
+        if (agents.length > 1) {
+          setAgents(prev => prev.filter((_, i) => i !== selectedIndex));
+          setSelectedIndex(i => Math.min(i, agents.length - 2));
+        }
         return;
       }
     }
